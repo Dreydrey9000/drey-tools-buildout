@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Drey Tools Buildout — 11 UI Challenges</title>
+<style>
+  :root {
+    --bg: #0f0d0b;
+    --bg-card: #1a1613;
+    --bg-card-hover: #221c18;
+    --border: #2a231d;
+    --border-hot: #3a2e24;
+    --text: #f5ead9;
+    --text-dim: #a89985;
+    --text-muted: #6b5d4f;
+    --cyan: #22d3ee;
+    --cyan-soft: #0891b2;
+    --amber: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #fb923c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 48px 32px;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  header { margin-bottom: 48px; }
+  h1 {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+  }
+  h1 .accent { color: var(--cyan); }
+  .subtitle { color: var(--text-dim); font-size: 18px; margin-bottom: 16px; }
+  .meta {
+    display: inline-flex;
+    gap: 24px;
+    padding: 12px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 16px;
+  }
+  .meta b { color: var(--text); font-weight: 600; }
+
+  /* SECTIONS */
+  section { margin-bottom: 56px; }
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  h2 .badge {
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .badge.absorb { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+  .badge.new { background: rgba(34, 211, 238, 0.15); color: var(--cyan); border: 1px solid rgba(34, 211, 238, 0.3); }
+  .badge.skip { background: rgba(107, 93, 79, 0.15); color: var(--text-muted); border: 1px solid rgba(107, 93, 79, 0.3); }
+
+  /* INTEGRATION DIAGRAM */
+  .diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+  }
+  .diagram-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  .app-node {
+    background: var(--bg-card-hover);
+    border: 1px solid var(--border-hot);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s;
+  }
+  .app-node:hover {
+    border-color: var(--cyan);
+    transform: translateY(-2px);
+  }
+  .app-node.new { border-color: rgba(34, 211, 238, 0.4); }
+  .app-node.new:hover { border-color: var(--cyan); box-shadow: 0 0 20px rgba(34, 211, 238, 0.15); }
+  .app-node .domain {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 14px;
+    color: var(--cyan);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .app-node .status {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+  .status.live { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+  .status.new { background: rgba(34, 211, 238, 0.15); color: var(--cyan); }
+  .app-node .desc {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .app-node .features {
+    list-style: none;
+    padding: 0;
+  }
+  .app-node .features li {
+    font-size: 13px;
+    padding: 4px 0;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .app-node .features li::before {
+    content: '+';
+    color: var(--green);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .app-node .features li.new::before { color: var(--cyan); content: '★'; font-size: 13px; }
+
+  /* PROJECT CARDS */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    transition: all 0.2s;
+  }
+  .card:hover { border-color: var(--border-hot); transform: translateY(-2px); }
+  .card.recommended {
+    border-color: var(--cyan);
+    box-shadow: 0 0 24px rgba(34, 211, 238, 0.12);
+  }
+  .card.recommended::before {
+    content: 'START HERE';
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: var(--cyan);
+    color: var(--bg);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .card .num {
+    font-family: 'SF Mono', Monaco, monospace;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .card .complexity {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--amber);
+  }
+  .card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .card .desc {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+  .card .home {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .card .home b { color: var(--text-dim); font-weight: 500; text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
+
+  /* WAVES */
+  .wave-label {
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .wave-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .wave-tag {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .wave-block { margin-bottom: 40px; }
+  .wave-block.wave-1 .wave-title { color: var(--green); }
+  .wave-block.wave-2 .wave-title { color: var(--amber); }
+  .wave-block.wave-3 .wave-title { color: var(--cyan); }
+  .wave-block.wave-4 .wave-title { color: var(--orange); }
+
+  /* DECISIONS */
+  .decisions {
+    background: rgba(34, 211, 238, 0.05);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-radius: 12px;
+    padding: 24px 28px;
+  }
+  .decisions h3 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--cyan);
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+  .decisions ol { list-style: none; counter-reset: dec; padding: 0; }
+  .decisions li {
+    counter-increment: dec;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(34, 211, 238, 0.12);
+    display: flex;
+    gap: 14px;
+  }
+  .decisions li:last-child { border-bottom: none; }
+  .decisions li::before {
+    content: counter(dec);
+    font-family: 'SF Mono', Monaco, monospace;
+    color: var(--cyan);
+    font-weight: 700;
+    min-width: 20px;
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: 'SF Mono', Monaco, monospace;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Drey Tools Buildout <span class="accent">— 11 UI Challenges</span></h1>
+  <p class="subtitle">Dave's consolidation audit. Ship where it matters. Absorb where possible.</p>
+  <div class="meta">
+    <span><b>Category:</b> Side Projects</span>
+    <span><b>Total:</b> 11</span>
+    <span><b>Absorb:</b> 8</span>
+    <span><b>New:</b> 2</span>
+    <span><b>Skip:</b> 1</span>
+  </div>
+</header>
+
+<section>
+  <h2>Integration Map — where each piece lives</h2>
+  <div class="diagram">
+    <div class="diagram-grid">
+
+      <div class="app-node">
+        <div class="domain">dreythomas.com</div>
+        <span class="status live">Live</span>
+        <p class="desc">Personal site. Stripe pending.</p>
+        <ul class="features">
+          <li>Profile Card component <small style="color:var(--text-muted)">(#10)</small></li>
+          <li>Contact Form component <small style="color:var(--text-muted)">(#9)</small></li>
+          <li>Product Page → unlocks Stripe <small style="color:var(--text-muted)">(#4)</small></li>
+        </ul>
+      </div>
+
+      <div class="app-node">
+        <div class="domain">dashboard.dreytools.com</div>
+        <span class="status live">Life Dashboard</span>
+        <p class="desc">Convex + Next.js 16. Warm dark theme.</p>
+        <ul class="features">
+          <li>Weather widget <small style="color:var(--text-muted)">(#7)</small></li>
+        </ul>
+      </div>
+
+      <div class="app-node">
+        <div class="domain">drdrey.com</div>
+        <span class="status live">DREY AI Musician</span>
+        <p class="desc">Suno tracks need a playable surface.</p>
+        <ul class="features">
+          <li>Music Player UI <small style="color:var(--text-muted)">(#8) ← START HERE</small></li>
+        </ul>
+      </div>
+
+      <div class="app-node">
+        <div class="domain">dottie.dreytools.com</div>
+        <span class="status live">Dottie Phone AI</span>
+        <p class="desc">Phone assistant. Needs web channel.</p>
+        <ul class="features">
+          <li>Chat UI (option A) <small style="color:var(--text-muted)">(#6)</small></li>
+        </ul>
+      </div>
+
+      <div class="app-node">
+        <div class="domain">abs.dreytools.com</div>
+        <span class="status live">ABS Club</span>
+        <p class="desc">Always Be Shipping community.</p>
+        <ul class="features">
+          <li>Chat UI (option B) <small style="color:var(--text-muted)">(#6)</small></li>
+          <li>Member metrics Dashboard <small style="color:var(--text-muted)">(#1 opt B)</small></li>
+        </ul>
+      </div>
+
+      <div class="app-node">
+        <div class="domain">1buttonbusiness.com</div>
+        <span class="status live">1BB</span>
+        <p class="desc">Main 1BB site + Hit List CRM.</p>
+        <ul class="features">
+          <li>Contact Form <small style="color:var(--text-muted)">(#9)</small></li>
+          <li>Task board inside Community Platform <small style="color:var(--text-muted)">(#2)</small></li>
+        </ul>
+      </div>
+
+      <div class="app-node new">
+        <div class="domain">templates.dreytools.com</div>
+        <span class="status new">New</span>
+        <p class="desc">Template factory. SaaS + Info + Physical.</p>
+        <ul class="features">
+          <li class="new">Product Landing template <small style="color:var(--text-muted)">(#5)</small></li>
+          <li class="new">Embeds ProfileCard + ContactForm</li>
+        </ul>
+      </div>
+
+      <div class="app-node new">
+        <div class="domain">scheduling.dreytools.com</div>
+        <span class="status new">New</span>
+        <p class="desc">Full calendar. Wires into Dottie.</p>
+        <ul class="features">
+          <li class="new">Calendar / Event App <small style="color:var(--text-muted)">(#3)</small></li>
+          <li class="new">Phone booking via Dottie</li>
+        </ul>
+      </div>
+
+      <div class="app-node">
+        <div class="domain">built-by-drey.com</div>
+        <span class="status live">Built By Drey</span>
+        <p class="desc">AI content coach.</p>
+        <ul class="features">
+          <li>Contact Form <small style="color:var(--text-muted)">(#9)</small></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Ship Waves <span class="badge absorb">ordered</span></h2>
+
+  <div class="wave-block wave-1">
+    <div class="wave-label">Wave 1 · This Week</div>
+    <div class="wave-title">Reusable Components</div>
+    <div class="wave-tag">Build once, drop into every site. Unlocks dreythomas.com Stripe.</div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="head"><span class="num">#10</span><span class="complexity">2/12 very easy</span></div>
+        <h3>Profile Card UI</h3>
+        <p class="desc">Three overlapping cards with hover effects. Pure CSS.</p>
+        <div class="home"><b>Home → </b>dreythomas.com /components/ProfileCard</div>
+      </div>
+
+      <div class="card">
+        <div class="head"><span class="num">#9</span><span class="complexity">3/12 easy</span></div>
+        <h3>Contact Us Form</h3>
+        <p class="desc">Zod validation + Resend email. Shared across sites.</p>
+        <div class="home"><b>Home → </b>shared component, 3 sites</div>
+      </div>
+
+      <div class="card">
+        <div class="head"><span class="num">#4</span><span class="complexity">4/12 med-hard</span></div>
+        <h3>E-commerce Product Page</h3>
+        <p class="desc">Thumbnails, pricing, add-to-cart. Unlocks Stripe.</p>
+        <div class="home"><b>Home → </b>dreythomas.com/products/[slug]</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wave-block wave-2">
+    <div class="wave-label">Wave 2 · Next Week</div>
+    <div class="wave-title">App Features</div>
+    <div class="wave-tag">Plug into live apps that need these exact components.</div>
+    <div class="cards">
+
+      <div class="card recommended">
+        <div class="head"><span class="num">#8</span><span class="complexity">7/12 easy-med</span></div>
+        <h3>Music Player UI</h3>
+        <p class="desc">Album art, play/pause, progress, skip. Gives DREY AI Musician a surface.</p>
+        <div class="home"><b>Home → </b>drdrey.com/player</div>
+      </div>
+
+      <div class="card">
+        <div class="head"><span class="num">#7</span><span class="complexity">11/12 easy-api</span></div>
+        <h3>Weather Widget</h3>
+        <p class="desc">OpenWeather API, forecast cards. Lives inside Life Dashboard.</p>
+        <div class="home"><b>Home → </b>dashboard.dreytools.com</div>
+      </div>
+
+      <div class="card">
+        <div class="head"><span class="num">#6</span><span class="complexity">10/12 medium</span></div>
+        <h3>Chat UI</h3>
+        <p class="desc">Sidebar, bubbles, timestamps. Dottie web chat OR ABS Club community. Decision needed.</p>
+        <div class="home"><b>Home → </b>dottie.dreytools.com OR abs.dreytools.com</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wave-block wave-3">
+    <div class="wave-label">Wave 3 · New Subdomains</div>
+    <div class="wave-title">Strategic Standalones</div>
+    <div class="wave-tag">These become dreytools properties that compound across future launches.</div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="head"><span class="num">#5</span><span class="complexity">5/12 medium</span></div>
+        <h3>Product Landing — Template Library</h3>
+        <p class="desc">3 templates: SaaS, Info Product, Physical. Fork for every future launch.</p>
+        <div class="home"><b>Home → </b>templates.dreytools.com</div>
+      </div>
+
+      <div class="card">
+        <div class="head"><span class="num">#3</span><span class="complexity">8/12 hard</span></div>
+        <h3>Calendar / Event App</h3>
+        <p class="desc">Month/week/list views, drag-drop events, repeating. Wires into Dottie phone booking.</p>
+        <div class="home"><b>Home → </b>scheduling.dreytools.com</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wave-block wave-4">
+    <div class="wave-label">Wave 4 · Heavy Builds</div>
+    <div class="wave-title">Pick Your Vertical First</div>
+    <div class="wave-tag">Don't build these generic. They're only worth it with a specific use case.</div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="head"><span class="num">#1</span><span class="complexity">6/12 hardest</span></div>
+        <h3>Dashboard UI</h3>
+        <p class="desc">Charts, cards, stats, nav. Pick a vertical: G3AC, ABS Club, or Viral Editz. Decision needed.</p>
+        <div class="home"><b>Home → </b>tbd (vertical choice)</div>
+      </div>
+
+      <div class="card">
+        <div class="head"><span class="num">#2</span><span class="complexity">9/12 very hard</span></div>
+        <h3>Task Management Board</h3>
+        <p class="desc">Drag-drop, columns, status tags. Becomes feature of 1BB Community Platform.</p>
+        <div class="home"><b>Home → </b>1BB Community Platform</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="wave-block">
+    <div class="wave-label">Skip</div>
+    <div class="wave-title" style="color:var(--text-muted)">Not a Real Build</div>
+    <div class="cards">
+      <div class="card" style="opacity:0.5">
+        <div class="head"><span class="num">#11</span><span class="complexity">1/12 intro</span></div>
+        <h3>Practice Frontend</h3>
+        <p class="desc">Title slide only. Logged for completeness.</p>
+        <div class="home"><b>Home → </b>none</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="decisions">
+    <h3>Open Decisions — Drey's Call</h3>
+    <ol>
+      <li>Chat UI first target — Dottie web chat or ABS Club community chat?</li>
+      <li>Dashboard UI vertical — G3AC ops / ABS Club metrics / Viral Editz client dashboard?</li>
+      <li>Task Management — standalone practice build first, or wait for 1BB Community Platform to kick off?</li>
+      <li>Stack for new subdomains — Convex + Next.js 16 (match Life Dashboard) or Cloudflare Pages static where possible?</li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  Created 2026-04-17 · Dave audit · ~/My Apps/drey-tools-buildout/
+</footer>
+
+</div>
+</body>
+</html>
